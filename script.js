@@ -1,5 +1,6 @@
 const express = require('express');
 const https = require('https');
+const cron = require('node-cron');
 
 var app = express();
 
@@ -16,6 +17,10 @@ var options = {
 app.get('/getTripStatus', function () {
     getRouteId('NEX');
 });
+
+// cron.schedule('1 * * * *', function() {
+//     console.log('displayed every 30sec');
+// });
 
 function getRouteId(routeShortName) {
     options.path = "/v2/gtfs/routes/routeShortName/" + routeShortName;
@@ -58,4 +63,11 @@ function getTripStatus(trips) {
     });
 }
 
+function checkStatus() {
+    console.log('calling...');
+
+    setTimeout(calling, 30*1000);
+}
+
 app.listen(3000);
+calling();
