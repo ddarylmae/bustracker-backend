@@ -63,7 +63,7 @@ function getTripStatus(trips) {
     });
 }
 
-function checkStatus() {
+function calling() {
     console.log('calling...');
 
     setTimeout(calling, 30*1000);
