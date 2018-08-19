@@ -21,17 +21,20 @@ app.get('/getTripStatus', function () {
 });
 
 app.get('/getByRouteName', function () {
-    getTripsByRouteName();
+    getByShortName('875');
+    // getTripsByRouteName();
 });
 
 // cron.schedule('1 * * * *', function() {
 //     console.log('displayed every 30sec');
 // });
 
-function getTripsByRouteName(){
-    let tripArray = [];
+function getByShortName(rName) {
+    let routeIds = [];
     // axios(options);
-    axios.get('https://api.at.govt.nz/v2/gtfs/trips/routeid/71202-20180725154052_v68.11',
+    // axios.get('https://api.at.govt.nz/v2/gtfs/trips/routeid/71202-20180725154052_v68.11',
+    // TODO LOOP
+    axios.get('https://api.at.govt.nz/v2/gtfs/routes/routeShortName/' + rName,
         {
             'headers': {"ocp-apim-subscription-key": "b84b7e570f5e4241b55b8a129748e1f0"}
         })
@@ -39,11 +42,12 @@ function getTripsByRouteName(){
         // handle success
         // console.log(response.data);
         response.data.response.forEach(elem => {
-            tripArray.push(elem.trip_id);
-            // console.log(elem.trip_id);
+            routeIds.push(elem.route_id);
+            console.log(elem.route_id);
         });
         // Call getStatus
-        retTripStatus(tripArray);
+        // retTripStatus(tripArray);
+        getByRouteIds(routeIds);
       })
       .catch(function (error) {
         // handle error
@@ -52,6 +56,36 @@ function getTripsByRouteName(){
       .then(function () {
         // always executed
       });
+}
+
+function getByRouteIds(rIds){
+    let tripArray = [];
+    // axios(options);
+    // axios.get('https://api.at.govt.nz/v2/gtfs/trips/routeid/71202-20180725154052_v68.11',
+    // TODO LOOP
+    rIds.forEach(id => {
+        axios.get('https://api.at.govt.nz/v2/gtfs/trips/routeid/' + id,
+            {
+                'headers': {"ocp-apim-subscription-key": "b84b7e570f5e4241b55b8a129748e1f0"}
+            })
+          .then(function (response) {
+            // handle success
+            // console.log(response.data);
+            response.data.response.forEach(elem => {
+                tripArray.push(elem.trip_id);
+                // console.log(elem.trip_id);
+            });
+            // Call getStatus
+            retTripStatus(tripArray);
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          })
+          .then(function () {
+            // always executed
+          });
+    });
 }
 
 
@@ -163,13 +197,15 @@ function retTripStatus(tripArray) {
     // axios(options);
     console.log('len: ' + tripArray.length);
     tripArray.forEach(element => {
-        axios.get('https://api.at.govt.nz/v2/public/realtime?tripid=' + element,
+        // console.log(element);
+        axios.get('https://api.at.govt.nz/v2/public/realtime/tripupdates?tripid=' + element,
         {
             'headers': {"ocp-apim-subscription-key": "b84b7e570f5e4241b55b8a129748e1f0"}
         })
         .then(function (response) {
         // handle success
             console.log(response.data);
+            
             // response.data.response.forEach(elem => {
 
             // });
@@ -186,8 +222,10 @@ function retTripStatus(tripArray) {
 
 function calling() {
     console.log('calling...');
+    getByShortName('875');
 
     setTimeout(calling, 30*1000);
+
 }
 
 app.listen(3000);
