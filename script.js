@@ -1,6 +1,8 @@
 const express = require('express');
 const https = require('https');
 const cron = require('node-cron');
+const fs = require('fs');
+const axios = require('axios');
 
 var app = express();
 
@@ -18,9 +20,40 @@ app.get('/getTripStatus', function () {
     getRouteId('879');
 });
 
+app.get('/getByRouteName', function () {
+    getTripsByRouteName();
+});
+
 // cron.schedule('1 * * * *', function() {
 //     console.log('displayed every 30sec');
 // });
+
+function getTripsByRouteName(){
+    let tripArray = [];
+    // axios(options);
+    axios.get('https://api.at.govt.nz/v2/gtfs/trips/routeid/71202-20180725154052_v68.11',
+        {
+            'headers': {"ocp-apim-subscription-key": "b84b7e570f5e4241b55b8a129748e1f0"}
+        })
+      .then(function (response) {
+        // handle success
+        // console.log(response.data);
+        response.data.response.forEach(elem => {
+            tripArray.push(elem.trip_id);
+            // console.log(elem.trip_id);
+        });
+        // Call getStatus
+        retTripStatus(tripArray);
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+      .then(function () {
+        // always executed
+      });
+}
+
 
 function getRouteId(routeShortName) {
     options.path = "/v2/gtfs/routes/routeShortName/" + routeShortName;
@@ -67,6 +100,9 @@ function getRouteId(routeShortName) {
 function getTripsByRouteId(routeIds) {
     // console.log('routeId: ' + routeId);
     let trips = [];
+    // var dictstring = JSON.stringify(dict);
+    fs.writeFile("trips.json", "");
+
     routeIds.forEach(rId => {
         options.path = '/v2/gtfs/trips/routeid/' + rId;
         console.log('Each route: ' + options.path);
@@ -82,12 +118,12 @@ function getTripsByRouteId(routeIds) {
                 body.response.forEach(element => {
                     // console.log(element);
                     trips.push(element.trip_id);
-                    console.log(element.trip_id);
+                    // console.log(element.trip_id);
                 });
             });
         });
         req.end();
-        console.log("ended")
+        // console.log("ended")
     });
     console.log("executed")
    // testFunc(trips);
@@ -119,6 +155,32 @@ function getTripStatus(trips) {
         });
     });
     req.end();
+    });
+}
+
+function retTripStatus(tripArray) {
+    let status = [];
+    // axios(options);
+    console.log('len: ' + tripArray.length);
+    tripArray.forEach(element => {
+        axios.get('https://api.at.govt.nz/v2/public/realtime?tripid=' + element,
+        {
+            'headers': {"ocp-apim-subscription-key": "b84b7e570f5e4241b55b8a129748e1f0"}
+        })
+        .then(function (response) {
+        // handle success
+            console.log(response.data);
+            // response.data.response.forEach(elem => {
+
+            // });
+        })
+        .catch(function (error) {
+        // handle error
+        console.log(error);
+        })
+        .then(function () {
+        // always executed
+        });
     });
 }
 
